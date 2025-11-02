@@ -1,0 +1,57 @@
+# Sistema de Gestión de Ventas - Oracle 11g + Java
+
+## 1. Descripción del Proyecto
+Este proyecto implementa un **Sistema de Gestión de Ventas** que permite:
+
+- Registrar clientes y productos.
+- Registrar pedidos y calcular automáticamente el total.
+- Listar productos y pedidos.
+- Visualizar pedidos con información completa de cliente y producto.
+
+La aplicación utiliza:
+
+- **Oracle 11g XE** como base de datos relacional.
+- **Java** como lenguaje de programación con JDBC para la conexión.
+- **SQL*Plus** para la creación de tablas, secuencias, triggers e inserción de datos.
+
+El proyecto sigue un diseño simple **MVC (Modelo-Vista-Controlador)**:
+
+- **Model:** No hay clases de modelo explícitas, se usa JDBC directamente.
+- **Controller:** `VentaController.java` contiene la lógica para interactuar con la base de datos.
+- **View:** `MenuPrincipal.java` muestra el menú interactivo al usuario.
+- **Main:** `MainApp.java` inicia la aplicación.
+
+---
+
+## 2. Diagrama Entidad-Relación (ER)
+CLIENTE :
+id_cliente PK
+nombre
+telefono
+
+PRODUCTO:
+id_producto PK
+nombre
+precio
+
+PEDIDO :
+id_pedido PK
+fecha
+id_cliente FK -> CLIENTE.id_cliente
+id_producto FK -> PRODUCTO.id_producto
+cantidad
+total
+
+- **Relaciones:**
+  - Un **cliente** puede tener muchos **pedidos**.
+  - Un **producto** puede estar en muchos **pedidos**.
+
+---
+## 3. Requisitos del Sistema
+
+- **Oracle 11g XE o SE**
+- **Java JDK 8+**
+- **Driver JDBC** (`ojdbc6.jar` o `ojdbc8.jar`)
+- Conexión configurada al servicio Oracle local (localhost:1521)
+
+
