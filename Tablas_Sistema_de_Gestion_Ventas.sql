@@ -24,11 +24,55 @@ CREATE TABLE pedido (
         ON DELETE CASCADE
 );
 
+
+INSERT INTO cliente (id_cliente, nombre, telefono)
+VALUES (9001, 'Carlos Pérez', '987654321');
+INSERT INTO producto (id_producto, nombre, precio, stock)
+VALUES (1001, 'Mouse Inalámbrico', 25.00, 30);
+INSERT INTO pedido (id_pedido, id_cliente, id_producto, cantidad, total)
+VALUES (seq_pedido.NEXTVAL, 9001, 1001, 2, 50.00);
+
+UPDATE cliente
+SET telefono = '999111222'
+WHERE id_cliente = 9001;
+UPDATE producto
+SET precio = 29.90
+WHERE id_producto = 1001;
+UPDATE pedido
+SET cantidad = 3,
+    total = 75.00
+WHERE id_pedido = 1;
+UPDATE producto
+SET stock = stock - 2
+WHERE id_producto = 1001;
+
+DELETE FROM cliente
+WHERE id_cliente = 9001;
+DELETE FROM producto
+WHERE id_producto = 1001;
+DELETE FROM pedido
+WHERE id_pedido = 10;
+
+
+
+
+
 CREATE SEQUENCE seq_pedido START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
+
 CREATE INDEX idx_pedido_cliente ON pedido(id_cliente);
 CREATE INDEX idx_pedido_producto ON pedido(id_producto);
 CREATE INDEX idx_producto_nombre ON producto(nombre);
 
+BEGIN
+    INSERT INTO pedido (id_pedido, id_cliente, id_producto, cantidad, total)
+    VALUES (seq_pedido.NEXTVAL, 9001, 1001, 2, 5.00);
+
+    UPDATE producto 
+    SET stock = stock - 2 
+    WHERE id_producto = 1001;
+
+    COMMIT;
+END;
 
 
 INSERT INTO cliente (id_cliente, nombre, telefono) VALUES (9001, 'Juan Perez', '999111222');
@@ -77,49 +121,14 @@ FROM pedido
 GROUP BY id_cliente
 ORDER BY total_gastado DESC;
 
-SELECT id_producto, nombre, precio
-FROM producto
-WHERE precio > (SELECT AVG(precio) FROM producto);
-
-SELECT DISTINCT c.id_cliente, c.nombre
-FROM cliente c
-WHERE EXISTS (
-  SELECT 1
-  FROM pedido p
-  WHERE p.id_cliente = c.id_cliente
-    AND p.total > (
-      SELECT AVG(p2.total)
-      FROM pedido p2
-      WHERE p2.id_cliente = c.id_cliente
-    )
-);
-
-SELECT p.id_producto, p.nombre, SUM(pd.cantidad) AS total_vendido
-FROM pedido pd
-JOIN producto p ON pd.id_producto = p.id_producto
-GROUP BY p.id_producto, p.nombre
-HAVING SUM(pd.cantidad) > 5
-ORDER BY total_vendido DESC;
-
-SELECT id_cliente, total_gastado
-FROM (
-  SELECT id_cliente, SUM(total) AS total_gastado
-  FROM pedido
-  GROUP BY id_cliente
-  ORDER BY total_gastado DESC
-)
-WHERE ROWNUM = 1;
-
-SELECT id_producto, nombre, stock
-FROM producto
-WHERE stock < (SELECT AVG(stock) FROM producto);
-
-SELECT TRUNC(fecha) AS dia,
-       COUNT(*) AS pedidos_dia,
-       SUM(total) AS ingresos_dia
+SELECT
+    MIN(precio) AS precio_minimo,
+    MAX(precio) AS precio_maximo,
+    AVG(precio) AS precio_promedio
+FROM producto;
+SELECT id_producto, AVG(cantidad) AS promedio_cantidad
 FROM pedido
-GROUP BY TRUNC(fecha)
-ORDER BY dia DESC;
+GROUP BY id_producto;
 
 
 INSERT INTO pedido (id_pedido, id_cliente, id_producto, cantidad, total)
@@ -127,6 +136,8 @@ VALUES (seq_pedido.NEXTVAL, 9001, 1001, 2, 5.00);
 UPDATE producto SET stock = stock - 2 WHERE id_producto = 1001;
 
 COMMIT;
+
+
 
 
 
