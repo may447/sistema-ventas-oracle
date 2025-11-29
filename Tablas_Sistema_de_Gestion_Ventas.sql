@@ -136,6 +136,126 @@ VALUES (seq_pedido.NEXTVAL, 9001, 1001, 2, 5.00);
 UPDATE producto SET stock = stock - 2 WHERE id_producto = 1001;
 
 COMMIT;
+CREATE OR REPLACE PROCEDURE sp_crear_cliente(
+    p_id_cliente IN NUMBER,
+    p_nombre     IN VARCHAR2,
+    p_telefono   IN VARCHAR2
+)
+AS
+BEGIN
+    INSERT INTO cliente(id_cliente, nombre, telefono)
+    VALUES(p_id_cliente, p_nombre, p_telefono);
+
+
+    COMMIT;
+END;
+/
+CREATE OR REPLACE PROCEDURE sp_actualizar_precio(
+    p_id_producto IN NUMBER,
+    p_nuevo_precio IN NUMBER
+)
+AS
+BEGIN
+    UPDATE producto
+    SET precio = p_nuevo_precio
+    WHERE id_producto = p_id_producto;
+
+
+    COMMIT;
+END;
+/
+CREATE OR REPLACE PROCEDURE sp_registrar_pedido(
+    p_id_cliente  IN NUMBER,
+    p_id_producto IN NUMBER,
+    p_cantidad    IN NUMBER
+)
+AS
+    v_precio producto.precio%TYPE;
+    v_stock  producto.stock%TYPE;
+    v_total  NUMBER;
+BEGIN
+    SELECT precio, stock INTO v_precio, v_stock
+    FROM producto
+    WHERE id_producto = p_id_producto;
+
+
+    IF v_stock < p_cantidad THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Stock insuficiente');
+    END IF;
+
+
+    v_total := v_precio * p_cantidad;
+
+
+    INSERT INTO pedido(id_pedido, fecha, id_cliente, id_producto, cantidad, total)
+    VALUES(seq_pedido.NEXTVAL, SYSDATE, p_id_cliente, p_id_producto, p_cantidad, v_total);
+
+
+    UPDATE producto
+    SET stock = stock - p_cantidad
+    WHERE id_producto = p_id_producto;
+
+
+    COMMIT;
+END;
+/
+CREATE OR REPLACE TRIGGER tr_producto_stock_no_negativo
+BEFORE UPDATE OF stock ON producto
+FOR EACH ROW
+BEGIN
+    IF :NEW.stock < 0 THEN
+        RAISE_APPLICATION_ERROR(-20011, 'El stock no puede ser negativo.');
+    END IF;
+END;
+/
+CREATE TABLE auditoria_pedido(
+    id_auditoria NUMBER PRIMARY KEY,
+    id_pedido    NUMBER,
+    fecha_accion DATE,
+    accion       VARCHAR2(20)
+);
+CREATE SEQUENCE seq_auditoria
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+CREATE OR REPLACE TRIGGER tr_auditar_pedido
+AFTER INSERT OR DELETE ON pedido
+FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+        INSERT INTO auditoria_pedido
+        VALUES (seq_auditoria.NEXTVAL, :NEW.id_pedido, SYSDATE, 'INSERT');
+    ELSIF DELETING THEN
+        INSERT INTO auditoria_pedido
+        VALUES (seq_auditoria.NEXTVAL, :OLD.id_pedido, SYSDATE, 'DELETE');
+    END IF;
+END;
+/
+CREATE OR REPLACE VIEW vw_pedidos_detalle AS
+SELECT
+    p.id_pedido,
+    c.nombre AS cliente,
+    pr.nombre AS producto,
+    p.cantidad,
+    p.total,
+    p.fecha
+FROM pedido p
+JOIN cliente c ON p.id_cliente = c.id_cliente
+JOIN producto pr ON p.id_producto = pr.id_producto;
+
+
+CREATE OR REPLACE VIEW vw_stock_productos AS
+SELECT
+    id_producto,
+    nombre,
+    precio,
+    stock
+FROM producto
+ORDER BY stock ASC;
+
+
+
+
 
 
 
