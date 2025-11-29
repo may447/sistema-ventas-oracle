@@ -9,16 +9,17 @@ import java.util.List;
 public class ClienteDAO {
 
     public boolean insertarCliente(Cliente cliente) {
-        String sql = "INSERT INTO cliente (id_cliente, nombre, dni, telefono) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO cliente (id_cliente, nombre, telefono) VALUES (?, ?, ?)";
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setInt(1, cliente.getIdCliente());
             ps.setString(2, cliente.getNombre());
             ps.setString(3, cliente.getTelefono());
-            ps.setString(4, cliente.getTelefono());
-            ps.executeUpdate();
-            return true;
+
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -76,4 +77,21 @@ public class ClienteDAO {
             return false;
         }
     }
+    public boolean crearClienteSP(int id, String nombre, String telefono) {
+        String sql = "{ CALL sp_crear_cliente(?, ?, ?) }";
+        try (Connection con = DatabaseConnection.getConnection();
+             CallableStatement cs = con.prepareCall(sql)) {
+
+            cs.setInt(1, id);
+            cs.setString(2, nombre);
+            cs.setString(3, telefono);
+
+            cs.execute();
+            return true;
+
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
 }
