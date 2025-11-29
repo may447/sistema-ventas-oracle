@@ -5,6 +5,7 @@ import services.DatabaseConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import model.PedidoDetalle;
 
 public class PedidoDAO {
 
@@ -107,5 +108,46 @@ public class PedidoDAO {
             return false;
         }
     }
-}
+    public boolean registrarPedidoSP(int idCliente, int idProducto, int cantidad) {
+        String sql = "{ CALL sp_registrar_pedido(?, ?, ?) }";
+        try (Connection con = DatabaseConnection.getConnection();
+             CallableStatement cs = con.prepareCall(sql)) {
 
+            cs.setInt(1, idCliente);
+            cs.setInt(2, idProducto);
+            cs.setInt(3, cantidad);
+
+            cs.execute();
+            return true;
+
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+    public List<PedidoDetalle> obtenerPedidosDetalle() {
+        List<PedidoDetalle> lista = new ArrayList<>();
+        String sql = "SELECT * FROM vw_pedidos_detalle";
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                PedidoDetalle pd = new PedidoDetalle(
+                        rs.getInt("id_pedido"),
+                        rs.getString("cliente"),
+                        rs.getString("producto"),
+                        rs.getInt("cantidad"),
+                        rs.getDouble("total"),
+                        rs.getTimestamp("fecha")
+                );
+                lista.add(pd);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+}
