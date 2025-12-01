@@ -24,23 +24,44 @@ El proyecto sigue un diseño simple **MVC (Modelo-Vista-Controlador)**:
 ---
 
 ## 2. Diagrama Entidad-Relación (ER)
-CLIENTE :
-id_cliente PK
+Empleado
+---------
+PK id_empleado
+nombre
+apellido
+dni (UNIQUE)
+salario
+
+
+Cliente
+---------
+PK id_cliente
 nombre
 telefono
 
-PRODUCTO:
-id_producto PK
+
+Producto
+---------
+PK id_producto
 nombre
 precio
+stock
 
-PEDIDO :
-id_pedido PK
+Venta
+---------
+PK id_venta
+FK id_empleado → Empleado.id_empleado
+FK id_cliente → Cliente.id_cliente
 fecha
-id_cliente FK -> CLIENTE.id_cliente
-id_producto FK -> PRODUCTO.id_producto
+
+Detalle_Venta
+--------------
+PK id_detalle
+FK id_venta → Venta.id_venta
+FK id_producto → Producto.id_producto
 cantidad
-total
+subtotal
+
 
 - **Relaciones:**
   - Un **cliente** puede tener muchos **pedidos**.
@@ -53,5 +74,6 @@ total
 - **Java JDK 8+**
 - **Driver JDBC** (`ojdbc6.jar` o `ojdbc8.jar`)
 - Conexión configurada al servicio Oracle local (localhost:1521)
+
 
 
